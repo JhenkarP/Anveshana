@@ -41,7 +41,7 @@ function Home() {
             AI - Powered Translation
           </h2>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-            Break Language Barriers with LinguaAI
+            Break Language Barriers with Lingua Bridge
           </h1>
           <p className="text-gray-300 mb-8 text-base sm:text-lg md:text-xl">
             Experience seamless communication across languages with our

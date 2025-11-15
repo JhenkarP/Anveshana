@@ -17,7 +17,7 @@ function Header() {
           <span className="font-bold text-xl">Lingua Bridge</span>
         </div>
 
-        <nav className="hidden md:flex space-x-6">
+        <nav className="hidden md:flex space-x-6 text-lg">
           {[
             "home",
             "translate",
@@ -25,6 +25,8 @@ function Header() {
             "globalchat",
             "worldmap",
             "about",
+            "login",
+            "signup",
           ].map((path) => (
             <NavLink
               key={path}
@@ -46,18 +48,24 @@ function Header() {
       </div>
       {isOpen && (
         <nav className="md:hidden bg-gray-800 px-4 pb-4 space-y-9 ml-4">
-          {["home", "translate", "conversation", "chat", "about"].map(
-            (path) => (
-              <NavLink
-                key={path}
-                to={`/${path}`}
-                onClick={() => setIsOpen(false)}
-                className="block hover:text-blue-400"
-              >
-                {path.charAt(0).toUpperCase() + path.slice(1)}
-              </NavLink>
-            )
-          )}
+          {[
+            "home",
+            "translate",
+            "conversation",
+            "chat",
+            "about",
+            "login",
+            "signup",
+          ].map((path) => (
+            <NavLink
+              key={path}
+              to={`/${path}`}
+              onClick={() => setIsOpen(false)}
+              className="block hover:text-blue-400"
+            >
+              {path.charAt(0).toUpperCase() + path.slice(1)}
+            </NavLink>
+          ))}
         </nav>
       )}
     </header>

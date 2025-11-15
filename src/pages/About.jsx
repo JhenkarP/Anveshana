@@ -15,13 +15,13 @@ function About() {
         {/* Title */}
         <h1 className="text-4xl md:text-5xl font-extrabold mb-3">
           <span className="text-blue-400">About</span>{" "}
-          <span className="text-white">LinguaAI</span>
+          <span className="text-white">Lingua Bridge</span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-gray-400 text-lg md:text-xl leading-relaxed max-w-3xl mb-10">
-          <span className="text-blue-400 font-semibold">LinguaAI</span> is an
-          innovative AI-driven platform that breaks language barriers through
+          <span className="text-blue-400 font-semibold">Lingua Bridge</span> is
+          an innovative AI-driven platform that breaks language barriers through
           real-time text and voice translation. Designed for travelers,
           professionals, and global communities — making communication natural,
           fast, and intelligent.
