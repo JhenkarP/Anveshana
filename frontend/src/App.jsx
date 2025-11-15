@@ -6,6 +6,8 @@ import GlobalChat from "./pages/GlobalChat";
 import WorldMap from "./pages/WorldMap";
 import Conversation from "./pages/Conversation";
 import About from "./pages/About";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 function App() {
   return (
     <Routes>
@@ -16,6 +18,8 @@ function App() {
         <Route path="/worldmap" element={<WorldMap />} />
         <Route path="/conversation" element={<Conversation />} />
         <Route path="/about" element={<About />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
       </Route>
     </Routes>
   );

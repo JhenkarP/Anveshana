@@ -217,7 +217,7 @@ export default function WorldMap() {
   return (
     <div className="bg-gray-950 min-h-screen flex flex-col items-center px-4 py-10 text-white">
       <h1 className="text-4xl font-bold text-blue-400 mb-6 tracking-wide">
-        World Map Display
+        Explore World Languages
       </h1>
 
       <div
