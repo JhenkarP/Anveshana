@@ -10,9 +10,9 @@ function Header() {
       <div className="container mx-auto flex justify-between items-center p-4">
         <div className="flex items-center">
           <img
-            src="/logo.png"
+            src="/logo.jpeg"
             alt="Logo"
-            className="h-10 w-10 mr-4 rounded-lg"
+            className="h-13 w-13 mr-4 rounded-lg"
           />
           <span className="font-bold text-xl">Lingua Bridge</span>
         </div>
