@@ -484,7 +484,7 @@ export default function Conversation() {
   }, []);
 
   return (
-    <div className="bg-gray-950 min-h-screen flex flex-col items-center px-4 py-10 text-white bg-[url('/coversation.png')] bg-cover bg-center">
+    <div className="bg-gray-950 min-h-screen flex flex-col items-center px-4 py-10 text-white bg-[url('/Translate.png')] bg-cover bg-center">
       {/* Title */}
       <h1 className="text-3xl font-bold text-blue-400 mb-2">
         Conversation Mode

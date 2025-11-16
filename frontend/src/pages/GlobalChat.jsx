@@ -1,6 +1,43 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// Inline SVG for the Settings Icon (Lucide equivalent)
+// Map of UI language name -> backend NLLB code
+const LANGUAGE_OPTIONS = {
+  English: "eng_Latn",
+  Hindi: "hin_Deva",
+  Bengali: "ben_Beng",
+  Marathi: "mar_Deva",
+  Telugu: "tel_Telu",
+  Tamil: "tam_Taml",
+  Gujarati: "guj_Gujr",
+  Kannada: "kan_Knda",
+  Malayalam: "mal_Mlym",
+  Punjabi: "pan_Guru",
+  Odia: "ory_Orya",
+  Urdu: "urd_Arab",
+  Assamese: "asm_Beng",
+  Bodo: "brx_Deva",
+  Dogri: "doi_Deva",
+  Konkani: "kok_Deva",
+  Maithili: "mai_Deva",
+  "Meitei (Manipuri)": "mni_Beng",
+  Sanskrit: "san_Deva",
+  Santali: "sat_Olck",
+  Sindhi: "snd_Arab",
+  Kashmiri: "kas_Arab",
+  Nepali: "npi_Deva",
+  Tulu: "tcy_Knda",
+  French: "fra_Latn",
+  Spanish: "spa_Latn",
+  German: "deu_Latn",
+  Portuguese: "por_Latn",
+  "Chinese (Simplified)": "zho_Hans",
+  Japanese: "jpn_Jpan",
+  Korean: "kor_Hang",
+  Arabic: "ara_Arab",
+};
+
+const WS_URL = "ws://127.0.0.1:8000/ws/chat/global";
+
 const SettingsIcon = (props) => (
   <svg
     {...props}
@@ -20,126 +57,139 @@ const SettingsIcon = (props) => (
   </svg>
 );
 
-/**
- * MOCK TRANSLATION FUNCTION:
- * Simulates real-time translation using only client-side logic.
- */
-const mockTranslate = (text, targetLang) => {
-  switch (targetLang) {
-    case "Spanish":
-      return `¡Hola! Mensaje traducido: "${text.substring(0, 30)}..."`;
-    case "French":
-      return `Bonjour! Message traduit: "${text.substring(0, 30)}..."`;
-    case "German":
-      return `Hallo! Übersetzte Nachricht: "${text.substring(0, 30)}..."`;
-    case "Japanese":
-      return `こんにちは! 翻訳されたメッセージ: "${text.substring(0, 15)}..."`;
-    case "English":
-    default:
-      return `Hello! Translated message: "${text.substring(0, 30)}..."`;
-  }
-};
-
-// --- Global Chat Component (Frontend Only) ---
 const GlobalChat = () => {
-  // Available languages for the selector
-  const availableLanguages = [
-    "English",
-    "Spanish",
-    "French",
-    "German",
-    "Japanese",
-  ];
+  const availableLanguages = Object.keys(LANGUAGE_OPTIONS);
 
-  // 1. Local State Setup
   const [userId] = useState(() =>
     typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID().substring(0, 8)
-      : "MockUser"
+      : "User" + Date.now()
   );
 
-  // State for translation and UI
   const [defaultLanguage, setDefaultLanguage] = useState("English");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Message Structure: { id, original_text, display_text, userId, timestamp }
-  const initialMessages = [
+  const [messages, setMessages] = useState([
     {
-      id: "m1",
-      original_text: "Welcome! Select your default language in the settings.",
-      display_text: "Welcome! Select your default language in the settings.",
+      id: "system-1",
+      original_text:
+        "Welcome! Pick your language in settings to see live translations.",
+      display_text:
+        "Welcome! Pick your language in settings to see live translations.",
       userId: "System",
-      timestamp: new Date(Date.now() - 60000),
+      timestamp: new Date(),
+      isTranslated: false,
     },
-  ];
+  ]);
 
-  const [messages, setMessages] = useState(initialMessages);
   const [newMessage, setNewMessage] = useState("");
-  const messagesEndRef = useRef(null);
-  const isReady = true; // Always ready as there are no async operations
+  const [isReady, setIsReady] = useState(false);
 
-  // 2. Scroll to the latest message
+  const messagesEndRef = useRef(null);
+  const wsRef = useRef(null);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 3. Send Message Function (Frontend Translation and Local State Update)
+  // Connect / reconnect WebSocket when language or userId changes
+  useEffect(() => {
+    const ws = new WebSocket(WS_URL);
+    wsRef.current = ws;
+    setIsReady(false);
+
+    ws.onopen = () => {
+      const tgt_code = LANGUAGE_OPTIONS[defaultLanguage] || "eng_Latn";
+      ws.send(
+        JSON.stringify({
+          user_id: userId,
+          tgt_lang: tgt_code,
+        })
+      );
+      setIsReady(true);
+      console.log("WS connected as", userId, "->", tgt_code);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        // data shape from backend:
+        // { id, chat_id, from_user, to_user, original_text, translated_text, src_lang, tgt_lang, created_at }
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: data.id,
+            original_text: data.original_text,
+            display_text: data.translated_text,
+            userId: data.from_user,
+            timestamp: data.created_at ? new Date(data.created_at) : new Date(),
+            isTranslated: true,
+            src_lang: data.src_lang,
+            tgt_lang: data.tgt_lang,
+          },
+        ]);
+      } catch (err) {
+        console.error("WS message parse error:", err);
+      }
+    };
+
+    ws.onclose = () => {
+      setIsReady(false);
+      console.log("WS closed");
+    };
+
+    ws.onerror = (err) => {
+      console.error("WS error:", err);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [defaultLanguage, userId]);
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     const originalText = newMessage.trim();
-    if (!originalText) return;
+    if (!originalText || !wsRef.current || wsRef.current.readyState !== 1)
+      return;
 
-    // Perform mock translation immediately
-    const translatedText = mockTranslate(originalText, defaultLanguage);
+    wsRef.current.send(
+      JSON.stringify({
+        text: originalText,
+      })
+    );
 
-    // Create a new message object
-    const newMsg = {
-      id: Date.now().toString(),
-      original_text: originalText,
-      display_text: translatedText, // Use the simulated translation
-      userId: userId,
-      timestamp: new Date(),
-      isTranslated: true, // Always true for this simulation
-    };
-
-    // Update local state and clear input
-    setMessages((prevMessages) => [...prevMessages, newMsg]);
     setNewMessage("");
   };
 
-  // --- UI Rendering ---
-  const placeholderText = `Type your message in any language (Simulated target: ${defaultLanguage})...`;
+  const placeholderText = `Type your message in any language (You will see it in: ${defaultLanguage})...`;
 
   return (
-    // Wrapper: relative so background layers can be absolutely positioned behind content
     <div className="relative min-h-screen flex items-center justify-center">
-      {/* Background image layer (behind everything) */}
-      {/* Put '/global.png' inside your public/ folder so it's served at '/global.png' */}
+      {/* Background image layer */}
       <div
         className="absolute inset-0 -z-20 bg-cover bg-center"
         style={{
-          backgroundImage: "url('/global.png')",
+          backgroundImage: "url('/Translate.png')",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundSize: "cover",
         }}
         aria-hidden="true"
       />
-
-      {/* Dark overlay so text stays readable (adjust opacity if you want lighter/darker) */}
+      {/* Dark overlay */}
       <div
         className="absolute inset-0 -z-10"
         style={{ backgroundColor: "rgba(7, 10, 16, 0.6)" }}
         aria-hidden="true"
       />
 
-      {/* Main content container (kept your same layout/colors) */}
+      {/* Chat Container */}
       <div className="w-full max-w-4xl bg-gray-900 rounded-xl shadow-2xl shadow-blue-900/50 border border-gray-800 flex flex-col h-[90vh] max-h-[800px] mx-4">
-        {/* Header and Settings */}
+        {/* Header */}
         <div className="p-4 border-b border-gray-800 flex justify-between items-center relative">
-          <h1 className="text-2xl font-bold text-blue-400">
-            Global Chat Demo 💬
-          </h1>
+          <h1 className="text-2xl font-bold text-blue-400">Global Chat 💬</h1>
 
           <div className="flex items-center gap-4">
             <div className="text-xs sm:text-sm text-gray-400 hidden sm:block">
@@ -150,7 +200,7 @@ const GlobalChat = () => {
             </div>
 
             <button
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              onClick={() => setIsSettingsOpen((open) => !open)}
               className="text-blue-400 hover:text-blue-300 p-2 rounded-full hover:bg-gray-800 transition"
               aria-label="Chat Settings"
             >
@@ -158,19 +208,18 @@ const GlobalChat = () => {
             </button>
           </div>
 
-          {/* Settings Dropdown */}
           {isSettingsOpen && (
-            <div className="absolute top-full right-4 mt-2 p-4 bg-gray-700 rounded-lg shadow-xl border border-gray-600 z-10 w-64">
+            <div className="absolute top-full right-4 mt-2 p-4 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-10 w-72">
               <label className="block text-sm font-medium text-white mb-2">
-                Simulate translation to:
+                See all messages translated to:
               </label>
               <select
                 value={defaultLanguage}
                 onChange={(e) => {
                   setDefaultLanguage(e.target.value);
-                  setIsSettingsOpen(false); // Close after selection
+                  setIsSettingsOpen(false);
                 }}
-                className="w-full p-2 rounded-md bg-gray-800 text-white border border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 rounded-md bg-gray-900 text-white border border-gray-600 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 {availableLanguages.map((lang) => (
                   <option key={lang} value={lang}>
@@ -179,13 +228,16 @@ const GlobalChat = () => {
                 ))}
               </select>
               <p className="text-xs text-gray-400 mt-2">
-                *All messages are immediately 'translated' into this format.
+                Backend code:{" "}
+                <span className="font-mono text-blue-300">
+                  {LANGUAGE_OPTIONS[defaultLanguage]}
+                </span>
               </p>
             </div>
           )}
         </div>
 
-        {/* Message Display Area */}
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-transparent">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-10">
@@ -200,41 +252,43 @@ const GlobalChat = () => {
                 }`}
               >
                 <div
-                  className={`
-                    max-w-[80%] sm:max-w-[65%] p-3 rounded-xl shadow-md transition-all 
-                    ${
-                      msg.userId === userId
-                        ? "bg-blue-600 text-white rounded-br-none"
-                        : msg.userId === "System"
-                        ? "bg-gray-700 text-white rounded-xl"
-                        : "bg-gray-700 text-white rounded-tl-none"
-                    }
-                  `}
+                  className={`max-w-[80%] sm:max-w-[65%] p-3 rounded-xl shadow-md transition-all ${
+                    msg.userId === userId
+                      ? "bg-blue-600 text-white rounded-br-none"
+                      : msg.userId === "System"
+                      ? "bg-gray-700 text-white rounded-xl"
+                      : "bg-gray-800 text-white rounded-tl-none"
+                  }`}
                 >
-                  {/* User ID and Translation Status */}
-                  {msg.userId !== userId && (
-                    <div
-                      className={`text-xs font-semibold mb-1 truncate text-blue-300`}
-                    >
+                  {msg.userId !== userId && msg.userId !== "System" && (
+                    <div className="text-xs font-semibold mb-1 truncate text-blue-300">
                       {msg.userId}
                     </div>
                   )}
+
                   {msg.isTranslated && (
-                    <div className="text-xs text-blue-200 font-semibold mb-1">
-                      Simulated Translation to:{" "}
+                    <div className="text-[11px] text-blue-200 font-semibold mb-1">
+                      Translated to{" "}
                       <span className="italic">{defaultLanguage}</span>
                     </div>
                   )}
 
-                  {/* Message Text: Show display_text */}
                   <p className="text-sm sm:text-base whitespace-pre-wrap">
                     {msg.display_text}
                   </p>
 
-                  {/* Timestamp */}
-                  <div className="text-right text-xs mt-1 opacity-70">
+                  {msg.original_text &&
+                    msg.original_text !== msg.display_text && (
+                      <p className="text-[11px] text-gray-300 mt-1 italic">
+                        Original: {msg.original_text}
+                      </p>
+                    )}
+
+                  <div className="text-right text-[10px] mt-1 opacity-70">
                     {msg.timestamp instanceof Date
                       ? msg.timestamp.toLocaleTimeString()
+                      : typeof msg.timestamp === "string"
+                      ? new Date(msg.timestamp).toLocaleTimeString()
                       : "..."}
                   </div>
                 </div>
@@ -244,7 +298,7 @@ const GlobalChat = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Form */}
+        {/* Input */}
         <form
           onSubmit={handleSendMessage}
           className="p-4 border-t border-gray-800 flex gap-3 bg-transparent"

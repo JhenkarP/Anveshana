@@ -216,14 +216,13 @@ export default function WorldMap() {
 
   return (
     <div className="bg-gray-950 min-h-screen flex flex-col items-center px-4 py-10 text-white">
-      <h1 className="text-4xl font-bold text-blue-400 mb-6 tracking-wide">
-        Explore World Languages
-      </h1>
-
       <div
         className="bg-gray-900/80 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-gray-700/40 max-w-6xl w-full"
         style={{ overflow: "visible" }}
       >
+        <h1 className="text-3xl font-bold text-blue-200 mb-6 tracking-wide bg-gray-900/10 px-3 py-1 rounded-lg text-center w-fit mx-auto shadow-sm shadow-blue-500/20">
+          Languages Across the World
+        </h1>
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{ scale: 120, center: [0, 10] }}

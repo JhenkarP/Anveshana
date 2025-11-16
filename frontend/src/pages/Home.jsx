@@ -1,6 +1,16 @@
 import React from "react";
-import { FaGlobe, FaMicrophone, FaComments } from "react-icons/fa";
+import {
+  FaGlobe,
+  FaMicrophone,
+  FaComments,
+  FaHeadphones,
+  FaBrain,
+  FaMagic,
+} from "react-icons/fa";
+import { HiOutlineSparkles } from "react-icons/hi2";
+
 import { NavLink } from "react-router-dom";
+import WorldMap from "./WorldMap";
 
 const features = [
   {
@@ -20,6 +30,33 @@ const features = [
     description:
       "Chat with an intelligent global companion and practice any language effortlessly.",
   },
+  {
+    icon: FaHeadphones,
+    title: "Voice Recognition",
+    description:
+      "Advanced speech-to-text captures your voice clearly, even in noisy environments.",
+  },
+
+  {
+    icon: FaBrain,
+    title: "Sentiment Analysis",
+    description:
+      "AI detects emotions in text and voice to understand tone, mood, and intent.",
+  },
+
+  {
+    icon: HiOutlineSparkles,
+    title: "Real-Time Translation",
+    description:
+      "Ultra-fast translation that updates instantly as you type or speak.",
+  },
+
+  {
+    icon: FaMagic,
+    title: "Smart Context Understanding",
+    description:
+      "AI understands context, slang, and expressions for accurate natural translations.",
+  },
 ];
 
 const FeatureCard = ({ icon: Icon, title, description }) => (
@@ -34,53 +71,56 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
 
 function Home() {
   return (
-    <div className="bg-gray-950 min-h-screen flex flex-col items-center px-4 py-12 gap-12">
-      <div className="bg-gray-900 p-8 rounded-2xl shadow-xl grid md:grid-cols-2 gap-8 max-w-6xl w-full items-center">
-        <div className="flex flex-col justify-center text-white">
-          <h2 className="inline-block bg-blue-400 px-3 py-1 w-fit rounded-full text-blue-800 font-semibold mb-4 text-sm md:text-base">
-            AI - Powered Translation
-          </h2>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-            Break Language Barriers with Lingua Bridge
+    <>
+      <WorldMap />
+      <div className="bg-gray-950 min-h-screen flex flex-col items-center px-4 py-12 gap-12">
+        <div className="bg-gray-900 p-8 rounded-2xl shadow-xl grid md:grid-cols-2 gap-8 max-w-6xl w-full items-center">
+          <div className="flex flex-col justify-center text-white">
+            <h2 className="inline-block bg-blue-400 px-3 py-1 w-fit rounded-full text-blue-800 font-semibold mb-4 text-sm md:text-base">
+              AI - Powered Translation
+            </h2>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              Break Language Barriers with Lingua Bridge
+            </h1>
+            <p className="text-gray-300 mb-8 text-base sm:text-lg md:text-xl">
+              Experience seamless communication across languages with our
+              AI-driven translation and conversation tools.
+            </p>
+            <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-500 transition duration-300 shadow-md w-fit">
+              <NavLink to="/translate">Translate Now</NavLink>
+            </button>
+          </div>
+
+          <div className="flex justify-center items-center">
+            <img
+              src="/homepage.png"
+              alt="Translation Illustration"
+              className="w-full max-w-md h-auto rounded-xl shadow-2xl"
+            />
+          </div>
+        </div>
+
+        <div className="text-center max-w-2xl">
+          <h1 className="text-white text-3xl font-bold mb-2">
+            Powerful Features
           </h1>
-          <p className="text-gray-300 mb-8 text-base sm:text-lg md:text-xl">
-            Experience seamless communication across languages with our
-            AI-driven translation and conversation tools.
+          <p className="text-gray-400 text-lg">
+            Everything you need for seamless communication across languages
           </p>
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-500 transition duration-300 shadow-md w-fit">
-            <NavLink to="/translate">Translate Now</NavLink>
-          </button>
         </div>
 
-        <div className="flex justify-center items-center">
-          <img
-            src="/homepage.png"
-            alt="Translation Illustration"
-            className="w-full max-w-md h-auto rounded-xl shadow-2xl"
-          />
+        <div className="max-w-7xl w-full grid gap-6 sm:grid-cols-2 lg:grid-cols-3 px-4">
+          {features.map((feature) => (
+            <FeatureCard
+              key={feature.title}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+            />
+          ))}
         </div>
       </div>
-
-      <div className="text-center max-w-2xl">
-        <h1 className="text-white text-3xl font-bold mb-2">
-          Powerful Features
-        </h1>
-        <p className="text-gray-400 text-lg">
-          Everything you need for seamless communication across languages
-        </p>
-      </div>
-
-      <div className="max-w-7xl w-full grid gap-6 sm:grid-cols-2 lg:grid-cols-3 px-4">
-        {features.map((feature) => (
-          <FeatureCard
-            key={feature.title}
-            icon={feature.icon}
-            title={feature.title}
-            description={feature.description}
-          />
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
 
